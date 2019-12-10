@@ -11,7 +11,14 @@ const MainNavigator = createStackNavigator(
   {
     defaultNavigationOptions: {
       title: 'XKCD',
-      headerBackTitle: 'Back'
+      headerBackTitle: 'Back',
+      headerStyle: {
+        backgroundColor: '#3a4bd1'
+      },
+      headerTintColor: '#ffffff',
+      headerTitleStyle: {
+        color: '#ffffff'
+      }
     }
   }
 )

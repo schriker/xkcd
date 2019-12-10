@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
 const Details = ({  }) => {
   return (
     <View>
-      <Text>Details page.</Text>
+      <Text>Details.</Text>
     </View>
   )
 }
