@@ -1,10 +1,23 @@
 import React, { useEffect, useState } from 'react'
-import { ScrollView, View, StyleSheet, ActivityIndicator } from 'react-native'
+import ComicCard from '../components/ComicCard'
+import {
+  ScrollView,
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  FlatList,
+  Text
+} from 'react-native'
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center'
+    justifyContent: 'center',
+    backgroundColor: '#f2f2f2'
+  },
+  cardsWrapper: {
+    paddingTop: 10,
+    paddingHorizontal: 20
   }
 })
 
@@ -12,32 +25,47 @@ const Home = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [comics, setComics] = useState([])
 
-  useEffect(() => {
-    (async function() {
-      try {
-        const amountOfCommics = 8
-        const fetchedComics = []
-        const latestComic = await (
-          await fetch('https://xkcd.com/info.0.json')
-        ).json()
-        fetchedComics.push(latestComic)
+  const fetchComics = async () => {
+    try {
+      const amountOfCommics = 8
+      const fetchedComics = []
 
-        for (let i = latestComic.num - 1; i > latestComic.num - amountOfCommics; i --) {
-          const comic = await (
-            await fetch(`https://xkcd.com/${i}/info.0.json`)
-          ).json()
-          fetchedComics.push(comic)
+      for (let i = 0; i < amountOfCommics; i++) {
+        let url = 'https://xkcd.com/info.0.json'
+        if (comics.length > 0) {
+          // This should be trigered for load more
+          url = `https://xkcd.com/${comics[comics.length].num - i}/info.0.json`
+        } else if (fetchedComics.length > 0) {
+          url = `https://xkcd.com/${fetchedComics[0].num - i}/info.0.json`
         }
-        setComics(fetchedComics)
-        setIsLoading(false)
-      } catch (error) {}
-    })()
+        const comic = await (await fetch(url)).json()
+        fetchedComics.push(comic)
+      }
+
+      setComics(fetchedComics)
+      setIsLoading(false)
+    } catch (error) {}
+  }
+
+  useEffect(() => {
+    fetchComics()
   }, [])
 
-  return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#3a4bd1" />
-    </View>
-  )
+  let content = <ActivityIndicator size="large" color="#3a4bd1" />
+
+  if (!isLoading && comics.length > 0) {
+    content = (
+      <FlatList
+        style={styles.cardsWrapper}
+        data={comics}
+        keyExtractor={comic => `${comic.num}`}
+        renderItem={comic => <ComicCard navigation={navigation} comicData={comic} />}
+      />
+    )
+  } else if (!isLoading) {
+    content = <Text>Error!</Text>
+  }
+
+  return <View style={styles.container}>{content}</View>
 }
 export default Home

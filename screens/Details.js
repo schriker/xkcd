@@ -1,14 +1,17 @@
 import React from 'react'
-import { View, StyleSheet, Text } from 'react-native'
+import { View, StyleSheet, Image } from 'react-native'
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create({})
 
-})
+const Details = ({ navigation }) => {
+  const comic = navigation.getParam('comic', '')
 
-const Details = ({  }) => {
   return (
     <View>
-      <Text>Details.</Text>
+      <Image
+        style={{ width: '100%', height: '100%' }}
+        source={{ uri: comic.img }}
+      ></Image>
     </View>
   )
 }
