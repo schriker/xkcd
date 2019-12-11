@@ -1,6 +1,6 @@
 # XKCD - comics feed mobile app
 
-Recruitment task mobile app for displaying comics from https://xkcd.com/ build with help of React Native and Expo.
+Recruitment task mobile app for displaying comics from https://xkcd.com/ built with help of React Native and Expo.
 
 ![XKCD - mobile app](preview.jpg)
 
