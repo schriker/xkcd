@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { AsyncStorage } from 'react-native'
 import ComicCard from '../components/ComicCard'
 import BasicButton from '../components/BasicButton'
 import {
@@ -12,13 +13,17 @@ import {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: '100%',
     justifyContent: 'center',
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#f2f2f2'
   },
   cardsWrapper: {
     paddingTop: 10,
     paddingHorizontal: 20,
     paddingBottom: 50
+  },
+  text: {
+    alignSelf: 'center'
   }
 })
 
@@ -43,7 +48,7 @@ const Home = ({ navigation }) => {
         const comic = await (await fetch(url)).json()
         fetchedComics.push(comic)
       }
-      if (comics.length > 0 && !isRefreshing) { 
+      if (comics.length > 0 && !isRefreshing) {
         setComics(prevComics => [...prevComics, ...fetchedComics])
       } else {
         setComics(fetchedComics)
@@ -65,22 +70,64 @@ const Home = ({ navigation }) => {
     }
   }, [isRefreshing])
 
+  const [favs, setFavs] = useState([])
+
+  useEffect(() => {
+    (async function(){
+      try {
+        const favsFromStorage = await AsyncStorage.getItem('Favs')
+        if (favsFromStorage !== null) {
+          setFavs(JSON.parse(favsFromStorage))
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    })()
+  }, [])
+
+  useEffect(() => {
+    (async function(){
+      await AsyncStorage.setItem('Favs', JSON.stringify(favs))
+    })()
+  }, [favs])
+
+  const favHandler = async (id) => {
+    try {
+      setFavs(prevFavs => {
+        if (favs.includes(id)) {
+          const removedFavs = prevFavs.filter(fav => fav !== id)
+          return removedFavs
+        } else {
+          return [...prevFavs, id]
+        }
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   let content = <ActivityIndicator size="large" color="#3a4bd1" />
 
   if (!isLoading && comics.length > 0) {
     content = (
-        <FlatList
-          refreshing={isRefreshing}
-          onRefresh={() => setIsRefreshing(true)}
-          contentContainerStyle={styles.cardsWrapper}
-          data={comics}
-          keyExtractor={comic => `${comic.num}`}
-          renderItem={comic => <ComicCard navigation={navigation} comicData={comic} />}
-          ListFooterComponent={<BasicButton isDisabled={isLoadingMore} pressCallback={fetchComics}>Load More</BasicButton>}
-        />
+      <FlatList
+        data={comics}
+        refreshing={isRefreshing}
+        keyExtractor={comic => `${comic.num}`}
+        onRefresh={() => setIsRefreshing(true)}
+        contentContainerStyle={styles.cardsWrapper}
+        renderItem={comic => (
+          <ComicCard navigation={navigation} comicData={comic} favHandler={favHandler} favs={favs} />
+        )}
+        ListFooterComponent={
+          <BasicButton isDisabled={isLoadingMore} pressCallback={fetchComics}>
+            Load More
+          </BasicButton>
+        }
+      />
     )
   } else if (!isLoading) {
-    content = <Text>Error!</Text>
+    content = <Text style={styles.text}>Error!</Text>
   }
 
   return <View style={styles.container}>{content}</View>

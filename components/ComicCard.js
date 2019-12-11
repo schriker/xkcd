@@ -1,4 +1,7 @@
 import React from 'react'
+import { AsyncStorage } from 'react-native'
+import { faHeart } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { View, StyleSheet, Text, TouchableOpacity, Image } from 'react-native'
 
 const styles = StyleSheet.create({
@@ -33,12 +36,32 @@ const styles = StyleSheet.create({
   },
   title: {
     flexShrink: 1
+  },
+  likeContainer: {
+    position: 'absolute',
+    top: 15,
+    right: 15
+  },
+  notLiked: {
+    color: '#bcc0c4'
+  },
+  liked: {
+    color: '#eb3223'
   }
 })
 
-const ComicCard = ({ comicData: { item: comic }, navigation }) => {
+const ComicCard = ({
+  comicData: { item: comic },
+  navigation,
+  favHandler,
+  favs
+}) => {
   return (
-    <TouchableOpacity style={styles.card} activeOpacity={0.6} onPress={() => navigation.navigate('Details', {comic})}>
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.6}
+      onPress={() => navigation.navigate('Details', { comic })}
+    >
       <View style={styles.imageWrapper}>
         <Image
           style={styles.image}
@@ -50,6 +73,18 @@ const ComicCard = ({ comicData: { item: comic }, navigation }) => {
         <Text style={styles.title}>{comic.title}</Text>
         <Text>{`${comic.day}.${comic.month}.${comic.year}`}</Text>
       </View>
+      <TouchableOpacity
+        style={styles.likeContainer}
+        onPress={() => favHandler(comic.num)}
+      >
+        <View>
+          <FontAwesomeIcon
+            size={24}
+            style={favs.includes(comic.num) ? styles.liked : styles.notLiked}
+            icon={faHeart}
+          />
+        </View>
+      </TouchableOpacity>
     </TouchableOpacity>
   )
 }
