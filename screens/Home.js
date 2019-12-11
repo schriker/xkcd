@@ -6,8 +6,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   FlatList,
-  Text,
-  TouchableOpacity
+  Text
 } from 'react-native'
 
 const styles = StyleSheet.create({
@@ -26,6 +25,7 @@ const styles = StyleSheet.create({
 const Home = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(true)
   const [comics, setComics] = useState([])
 
   const fetchComics = async () => {
@@ -35,7 +35,7 @@ const Home = ({ navigation }) => {
       const fetchedComics = []
       for (let i = 0; i < amountOfCommics; i++) {
         let url = 'https://xkcd.com/info.0.json'
-        if (comics.length > 0) {
+        if (comics.length > 0 && !isRefreshing) {
           url = `https://xkcd.com/${comics[comics.length - 1].num - i - 1}/info.0.json`
         } else if (fetchedComics.length > 0) {
           url = `https://xkcd.com/${fetchedComics[0].num - i}/info.0.json`
@@ -43,27 +43,35 @@ const Home = ({ navigation }) => {
         const comic = await (await fetch(url)).json()
         fetchedComics.push(comic)
       }
-      if (comics.length > 0) { 
+      if (comics.length > 0 && !isRefreshing) { 
         setComics(prevComics => [...prevComics, ...fetchedComics])
       } else {
         setComics(fetchedComics)
       }
       setIsLoading(false)
+      setIsRefreshing(false)
       setIsLoadingMore(false)
     } catch (error) {
+      setIsLoading(false)
+      setIsRefreshing(false)
+      setIsLoadingMore(false)
       console.log(error)
     }
   }
 
   useEffect(() => {
-    fetchComics()
-  }, [])
+    if (isRefreshing) {
+      fetchComics()
+    }
+  }, [isRefreshing])
 
   let content = <ActivityIndicator size="large" color="#3a4bd1" />
 
   if (!isLoading && comics.length > 0) {
     content = (
         <FlatList
+          refreshing={isRefreshing}
+          onRefresh={() => setIsRefreshing(true)}
           contentContainerStyle={styles.cardsWrapper}
           data={comics}
           keyExtractor={comic => `${comic.num}`}
